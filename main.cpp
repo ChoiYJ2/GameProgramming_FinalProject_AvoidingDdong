@@ -265,6 +265,9 @@ void MainWindow::checkHit()
 					i.hitted = true;
 					i.destroyed = true;
 					player_hitted = true;
+					if (!score_calc)
+						score -= 10;
+					score_calc = true;
 				}
 				else if (0 <= check_x2)
 				{
@@ -273,15 +276,16 @@ void MainWindow::checkHit()
 						i.hitted = true;
 						i.destroyed = true;
 						player_hitted = true;
+						if (!score_calc)
+							score -= 10;
+						score_calc = true;
 					}
 				}
 			}
 			if (i.Ddong_LeftTop.y <= window_size.bottom)
 			{
 				i.destroyed = true;
-				if (i.hitted and !score_calc)
-					score -= 10;
-				else
+				if (!score_calc)
 					score += 2;
 				score_calc = true;
 			}
@@ -327,19 +331,23 @@ void MainWindow::OnPaint()
 
 	pRenderTarget->BeginDraw();
 
+	// 점수가 0 이하인 경우 게임 종료
 	if (GameOver)
 	{
-		Sleep(500);
+		Sleep(1000);
 		PostQuitMessage(0);
 		return;
 	}
 
 	player_hitted = false;
+	score_calc = false;
 	period++;
 	Ddongmove();
 	if (period % 40 == 0)
-		if (Ddongs.size() <= 3)
+	{
+		if (Ddongs.size() <= 5)
 			DdongGEN();
+	}
 	checkHit();
 
 	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
@@ -365,7 +373,6 @@ void MainWindow::OnPaint()
 			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(0.f, window_size.bottom / 2 - 35.f));
 			pRenderTarget->DrawText(GameOver_buf, (int)wcslen(GameOver_buf), pGameOver, D2D1::RectF(0.f, 0.f, 450.f, 35.f), pGameOverBrush);
 		}
-		score_calc = false;
 	}
 	else
 	{
