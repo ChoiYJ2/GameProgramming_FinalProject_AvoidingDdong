@@ -18,7 +18,7 @@ typedef struct Ddong {
 	ID2D1Bitmap* pDdong = NULL;
 	D2D1_SIZE_F Ddong_size;
 	D2D1_POINT_2F Ddong_LeftTop;
-	float ddong_speed;
+	float ddong_speed = 0.f;
 	bool hitted = FALSE;
 	bool destroyed = FALSE;
 }Ddong;
@@ -70,13 +70,11 @@ private:
 	ID2D1SolidColorBrush* pGameOverBrush;
 
 	// 점수
-	int score = 10;
+	int score = 0;
 	D2D1_POINT_2F score_LeftTop;
 	bool score_calc = false;
 	IDWriteTextFormat* pScore;
 	ID2D1SolidColorBrush* pScoreBrush;
-	WCHAR score_buf[180];
-
 
 	//player
 	ID2D1Bitmap* pPlayer;
@@ -88,7 +86,7 @@ private:
 	//ddong
 	std::vector<Ddong> Ddongs;
 	ID2D1Bitmap* pDdong_bitmap;
-	int period;
+	int period = 0;
 };
 
 MainWindow::MainWindow() :
@@ -284,7 +282,7 @@ void MainWindow::checkHit()
 				if (i.hitted and !score_calc)
 					score -= 10;
 				else
-					score += 10;
+					score += 2;
 				score_calc = true;
 			}
 		}
@@ -340,13 +338,19 @@ void MainWindow::OnPaint()
 	period++;
 	Ddongmove();
 	if (period % 40 == 0)
-		if (Ddongs.size() <= 2)
+		if (Ddongs.size() <= 3)
 			DdongGEN();
 	checkHit();
 
 	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
+	//Score 그리기
+	WCHAR score_buf[180];
+	wsprintf(score_buf, L"Score: %d", score);
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+	pRenderTarget->DrawText(score_buf, (int)wcslen(score_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
+	
 	//player 그리기
 	if (player_hitted)
 	{
@@ -368,23 +372,13 @@ void MainWindow::OnPaint()
 		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(player_LeftTop.x, player_LeftTop.y));
 		pRenderTarget->DrawBitmap(pPlayer, D2D1::RectF(0.f, 0.f, player_size.width, player_size.height));
 
-
+		// Ddong 그리기
+		for (auto& i : Ddongs)
+		{
+			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(i.Ddong_LeftTop.x, i.Ddong_LeftTop.y));
+			pRenderTarget->DrawBitmap(i.pDdong, D2D1::RectF(0.f, 0.f, i.Ddong_size.width, i.Ddong_size.height));
+		}
 	}
-
-	// Ddong 그리기
-	for (auto& i : Ddongs)
-	{
-		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(i.Ddong_LeftTop.x, i.Ddong_LeftTop.y));
-		pRenderTarget->DrawBitmap(i.pDdong, D2D1::RectF(0.f, 0.f, i.Ddong_size.width, i.Ddong_size.height));
-	}
-
-	//Score 그리기
-	WCHAR player_buf[180];
-	wsprintf(score_buf, L"Score: %d", score);
-	wsprintf(player_buf, L"LEFT.x: %d, LEFT.y: %d", (int)player_LeftTop.x, (int)player_LeftTop.y);
-	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-	pRenderTarget->DrawText(score_buf, (int)wcslen(score_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
-	pRenderTarget->DrawText(player_buf, (int)wcslen(player_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y + 40.f, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
 
 	hr = pRenderTarget->EndDraw();
 
