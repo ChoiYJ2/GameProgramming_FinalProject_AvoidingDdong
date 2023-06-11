@@ -9,9 +9,6 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
-#include <mutex>
-
-std::mutex scoreMutex;
 
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
@@ -287,13 +284,11 @@ void MainWindow::checkHit()
 			if (i.Ddong_LeftTop.y <= window_size.bottom)
 			{
 				i.destroyed = true;
-				scoreMutex.lock();
 				if (i.hitted and !score_calc)
 					score -= 10;
 				else
 					score += 10;
 				score_calc = true;
-				scoreMutex.unlock();
 			}
 		}
 	}
