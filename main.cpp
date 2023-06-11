@@ -24,7 +24,14 @@ typedef struct Ddong {
 	bool destroyed = FALSE;
 }Ddong;
 
+typedef struct Life {
+	ID2D1Bitmap* pLife = NULL;
+	D2D1_SIZE_F Life_size;
+	D2D1_POINT_2F Life_LeftTop;
+}Life;
+
 Ddong ddong;
+Life life;
 
 class MainWindow
 {
@@ -88,6 +95,11 @@ private:
 	std::vector<Ddong> Ddongs;
 	ID2D1Bitmap* pDdong_bitmap;
 	int period = 0;
+
+	// Life
+	int life_cnt = 0;
+	std::vector<Life> Lifes;
+	ID2D1Bitmap* pLifeBitmap;
 };
 
 MainWindow::MainWindow() :
@@ -102,7 +114,8 @@ MainWindow::MainWindow() :
 	pWICFactory(NULL),
 	pPlayer(NULL),
 	pDdongPlayer(NULL),
-	pDdong_bitmap(NULL)
+	pDdong_bitmap(NULL),
+	pLifeBitmap(NULL)
 {
 	PlaySound(L"bgm.wav", NULL, SND_NOSTOP | SND_ASYNC | SND_LOOP);
 }
@@ -211,6 +224,9 @@ HRESULT MainWindow::CreateDeviceResource()
 	hr = LoadBitmapFromRes(pRenderTarget, pWICFactory, L"Ddong", L"Image", 0, 0, &pDdong_bitmap);
 	if (FAILED(hr)) return hr;
 
+	hr = LoadBitmapFromRes(pRenderTarget, pWICFactory, L"Life", L"Image", 25, 25, &pLifeBitmap);
+	if (FAILED(hr)) return hr;
+
 	::GetClientRect(hwnd, &window_size);
 	// 점수 초기화
 	score_LeftTop = D2D1::Point2F(window_size.right / 2 - 35.f, window_size.top);
@@ -218,6 +234,16 @@ HRESULT MainWindow::CreateDeviceResource()
 	// Player 초기화
 	player_size = pDdongPlayer->GetSize();
 	player_LeftTop = D2D1::Point2F(window_size.right / 2, window_size.bottom - player_size.height);
+
+	// Life 초기화
+	for (int i = 0; i < 3; i++)
+	{
+		life.pLife = pLifeBitmap;
+		life.Life_size = pLifeBitmap->GetSize();
+		life.Life_LeftTop = D2D1::Point2F(0.f, life.Life_size.width);
+		Lifes.push_back(life);
+	}
+	life_cnt = Lifes.size();
 
 	return hr;
 }
@@ -232,6 +258,7 @@ void MainWindow::DiscardDeviceResource()
 	SAFE_RELEASE(pPlayer);
 	SAFE_RELEASE(pDdongPlayer);
 	SAFE_RELEASE(pDdong_bitmap);
+	SAFE_RELEASE(pLifeBitmap);
 }
 
 // 키보드 왼쪽 화살표 버튼 누르면 player 왼쪽으로 이동
@@ -354,19 +381,15 @@ void MainWindow::OnPaint()
 	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
-	//Score 그리기
-	WCHAR score_buf[180];
-	wsprintf(score_buf, L"Score: %d", score);
-	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-	pRenderTarget->DrawText(score_buf, (int)wcslen(score_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
-
 	//player 그리기
 	if (player_hitted)
 	{
+		Lifes.erase(Lifes.end() - 1);
+		life_cnt--;
 		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(player_LeftTop.x, player_LeftTop.y));
 		pRenderTarget->DrawBitmap(pDdongPlayer, D2D1::RectF(0.f, 0.f, player_size.width, player_size.height));
 
-		if (score <= 0)
+		if ((score <= 0) or (life_cnt == 0))
 		{
 			PlaySound(NULL, NULL, SND_ASYNC);
 			PlaySound(L"gameover.wav", NULL, SND_ASYNC);
@@ -388,6 +411,19 @@ void MainWindow::OnPaint()
 			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(i.Ddong_LeftTop.x, i.Ddong_LeftTop.y));
 			pRenderTarget->DrawBitmap(i.pDdong, D2D1::RectF(0.f, 0.f, i.Ddong_size.width, i.Ddong_size.height));
 		}
+	}
+
+	//Score 그리기
+	WCHAR score_buf[180];
+	wsprintf(score_buf, L"Score: %d", score);
+	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+	pRenderTarget->DrawText(score_buf, (int)wcslen(score_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
+
+	// Life 그리기
+	for (int i = 0; i < Lifes.size(); i++)
+	{
+		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(Lifes[i].Life_size.width * i + 2.f, 2.f));
+		pRenderTarget->DrawBitmap(Lifes[i].pLife, D2D1::RectF(0.f, 0.f, Lifes[i].Life_size.width, Lifes[i].Life_size.height));
 	}
 
 	hr = pRenderTarget->EndDraw();

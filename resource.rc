@@ -1,3 +1,5 @@
 Player	Image	"images/person.png"
 Ddong	Image	"images/ddong_p.png"
 DdongHead	Image	"images/Ddong_man.png"
+Life	Image	"images/life.png"
+BrokenLife	Image	"images/broken_life.png"
