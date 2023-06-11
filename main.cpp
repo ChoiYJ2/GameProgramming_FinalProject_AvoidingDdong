@@ -392,7 +392,6 @@ void MainWindow::OnPaint()
 	//player ±×¸®±â
 	if (player_hitted)
 	{
-		//Lifes.erase(Lifes.end() - 1);
 		life_cnt--;
 		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(player_LeftTop.x, player_LeftTop.y));
 		pRenderTarget->DrawBitmap(pDdongPlayer, D2D1::RectF(0.f, 0.f, player_size.width, player_size.height));
