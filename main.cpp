@@ -26,6 +26,7 @@ typedef struct Ddong {
 
 typedef struct Life {
 	ID2D1Bitmap* pLife = NULL;
+	ID2D1Bitmap* pBrokenLife = NULL;
 	D2D1_SIZE_F Life_size;
 	D2D1_POINT_2F Life_LeftTop;
 }Life;
@@ -244,6 +245,7 @@ HRESULT MainWindow::CreateDeviceResource()
 	for (int i = 0; i < 3; i++)
 	{
 		life.pLife = pLifeBitmap;
+		life.pBrokenLife = pBrokenLifeBitmap;
 		life.Life_size = pLifeBitmap->GetSize();
 		life.Life_LeftTop = D2D1::Point2F(0.f, life.Life_size.width);
 		Lifes.push_back(life);
@@ -390,7 +392,7 @@ void MainWindow::OnPaint()
 	//player 그리기
 	if (player_hitted)
 	{
-		Lifes.erase(Lifes.end() - 1);
+		//Lifes.erase(Lifes.end() - 1);
 		life_cnt--;
 		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(player_LeftTop.x, player_LeftTop.y));
 		pRenderTarget->DrawBitmap(pDdongPlayer, D2D1::RectF(0.f, 0.f, player_size.width, player_size.height));
@@ -428,8 +430,16 @@ void MainWindow::OnPaint()
 	// Life 그리기
 	for (int i = 0; i < Lifes.size(); i++)
 	{
-		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(Lifes[i].Life_size.width * i + 2.f, 2.f));
-		pRenderTarget->DrawBitmap(Lifes[i].pLife, D2D1::RectF(0.f, 0.f, Lifes[i].Life_size.width, Lifes[i].Life_size.height));
+		if (i >= life_cnt)
+		{
+			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(Lifes[i].Life_size.width * i + 2.f, 2.f));
+			pRenderTarget->DrawBitmap(Lifes[i].pBrokenLife, D2D1::RectF(0.f, 0.f, Lifes[i].Life_size.width, Lifes[i].Life_size.height));
+		}
+		else
+		{
+			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(Lifes[i].Life_size.width * i + 2.f, 2.f));
+			pRenderTarget->DrawBitmap(Lifes[i].pLife, D2D1::RectF(0.f, 0.f, Lifes[i].Life_size.width, Lifes[i].Life_size.height));
+		}
 	}
 
 	hr = pRenderTarget->EndDraw();
