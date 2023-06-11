@@ -25,8 +25,6 @@ typedef struct Ddong {
 
 Ddong ddong;
 
-HANDLE scoreSemaphore;
-
 class MainWindow
 {
 public:
@@ -65,7 +63,7 @@ private:
 
 	//WIC 변수 선언
 	IWICImagingFactory* pWICFactory;
-	
+
 	// GameOver
 	bool GameOver = false;
 	IDWriteTextFormat* pGameOver;
@@ -108,7 +106,6 @@ MainWindow::MainWindow() :
 	pDdong_bitmap(NULL)
 {
 }
-
 
 MainWindow::~MainWindow()
 {
@@ -177,7 +174,7 @@ HRESULT MainWindow::CreateAppResource()
 	// 주의: WIC 팩토리를 생성하는 CoCreateInstance 함수가 사용될 때에는 이전에 CoInitialize를 호출해주어야 함.
 	hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pWICFactory));
 	if (FAILED(hr)) return hr;
-	
+
 	return hr;
 }
 
@@ -216,11 +213,11 @@ HRESULT MainWindow::CreateDeviceResource()
 
 	::GetClientRect(hwnd, &window_size);
 	// 점수 초기화
-	score_LeftTop = D2D1::Point2F(window_size.right/2 - 35.f, window_size.top);
+	score_LeftTop = D2D1::Point2F(window_size.right / 2 - 35.f, window_size.top);
 
 	// Player 초기화
 	player_size = pDdongPlayer->GetSize();
-	player_LeftTop = D2D1::Point2F(window_size.right/2, window_size.bottom - player_size.height);
+	player_LeftTop = D2D1::Point2F(window_size.right / 2, window_size.bottom - player_size.height);
 
 	return hr;
 }
@@ -256,7 +253,7 @@ void MainWindow::PlayermoveRight()
 // 똥과 플레이어가 부딪혔는지 확인
 void MainWindow::checkHit()
 {
-	for(auto& i : Ddongs)
+	for (auto& i : Ddongs)
 	{
 		float check_y = player_LeftTop.y - (i.Ddong_LeftTop.y + i.Ddong_size.height);
 		float check_x1 = (i.Ddong_LeftTop.x + i.Ddong_size.width) - player_LeftTop.x;
@@ -297,7 +294,7 @@ void MainWindow::checkHit()
 // 똥 움직이는 함수
 void MainWindow::Ddongmove()
 {
-	for(int i = 0; i < Ddongs.size(); i++)
+	for (int i = 0; i < Ddongs.size(); i++)
 	{
 		if (Ddongs[i].destroyed)
 		{
@@ -355,7 +352,7 @@ void MainWindow::OnPaint()
 	{
 		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(player_LeftTop.x, player_LeftTop.y));
 		pRenderTarget->DrawBitmap(pDdongPlayer, D2D1::RectF(0.f, 0.f, player_size.width, player_size.height));
-		
+
 		if (score <= 0)
 		{
 			GameOver = true;
@@ -371,7 +368,7 @@ void MainWindow::OnPaint()
 		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(player_LeftTop.x, player_LeftTop.y));
 		pRenderTarget->DrawBitmap(pPlayer, D2D1::RectF(0.f, 0.f, player_size.width, player_size.height));
 
-		
+
 	}
 
 	// Ddong 그리기
@@ -427,7 +424,7 @@ LRESULT CALLBACK MainWindow::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	if (!pMainWindow)
 		return DefWindowProc(hwnd, message, wParam, lParam);
 
-	
+
 	switch (message)
 	{
 	case WM_SIZE:
