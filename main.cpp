@@ -1,5 +1,7 @@
 #pragma once
 #include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm")
 #include <d2d1.h>
 #pragma comment(lib, "d2d1")
 #include <dwrite.h>
@@ -8,7 +10,6 @@
 #pragma comment(lib, "WindowsCodecs")
 #include <vector>
 #include <cstdlib>
-#include <ctime>
 
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
@@ -103,6 +104,7 @@ MainWindow::MainWindow() :
 	pDdongPlayer(NULL),
 	pDdong_bitmap(NULL)
 {
+	PlaySound(L"bgm.wav", NULL, SND_NOSTOP | SND_ASYNC | SND_LOOP);
 }
 
 MainWindow::~MainWindow()
@@ -136,7 +138,7 @@ HRESULT MainWindow::Initialize(HINSTANCE hInstance)
 	RegisterClassEx(&wcex);
 
 	// 윈도우를 생성함.
-	hwnd = CreateWindow(L"Avoiding Ddong", L"Avoiding Ddong", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 450, 640, NULL, NULL, hInstance, this);
+	hwnd = CreateWindow(L"Avoiding Ddong", L"Avoiding Ddong", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 380, 540, NULL, NULL, hInstance, this);
 	hr = hwnd ? S_OK : E_FAIL;
 	if (!hwnd) return E_FAIL;
 
@@ -304,7 +306,7 @@ void MainWindow::Ddongmove()
 		}
 		if ((Ddongs[i].Ddong_LeftTop.y + Ddongs[i].Ddong_size.height) >= window_size.bottom)
 		{
-			Ddongs[i].Ddong_LeftTop = D2D1::Point2F(rand() % 410, window_size.top + 35.f);
+			Ddongs[i].Ddong_LeftTop = D2D1::Point2F(rand() % 380, window_size.top + 35.f);
 			score_calc = false;
 			return;
 		}
@@ -315,10 +317,9 @@ void MainWindow::Ddongmove()
 // 똥 생성하는 함수
 void MainWindow::DdongGEN()
 {
-	srand((unsigned int)time(NULL));
 	ddong.pDdong = pDdong_bitmap;
 	ddong.ddong_speed = rand() % 5 + 2.f;
-	ddong.Ddong_LeftTop = D2D1::Point2F(rand() % 410, window_size.top + 35.f);
+	ddong.Ddong_LeftTop = D2D1::Point2F(rand() % 350, window_size.top + 35.f);
 	ddong.Ddong_size = ddong.pDdong->GetSize();
 	Ddongs.push_back(ddong);
 }
@@ -334,7 +335,7 @@ void MainWindow::OnPaint()
 	// 점수가 0 이하인 경우 게임 종료
 	if (GameOver)
 	{
-		Sleep(1000);
+		Sleep(2000);
 		PostQuitMessage(0);
 		return;
 	}
@@ -343,9 +344,9 @@ void MainWindow::OnPaint()
 	score_calc = false;
 	period++;
 	Ddongmove();
-	if (period % 40 == 0)
+	if (period % 35 == 0)
 	{
-		if (Ddongs.size() <= 5)
+		if (Ddongs.size() <= 7)
 			DdongGEN();
 	}
 	checkHit();
@@ -358,7 +359,7 @@ void MainWindow::OnPaint()
 	wsprintf(score_buf, L"Score: %d", score);
 	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 	pRenderTarget->DrawText(score_buf, (int)wcslen(score_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
-	
+
 	//player 그리기
 	if (player_hitted)
 	{
@@ -367,11 +368,13 @@ void MainWindow::OnPaint()
 
 		if (score <= 0)
 		{
+			PlaySound(NULL, NULL, SND_ASYNC);
+			PlaySound(L"gameover.wav", NULL, SND_ASYNC);
 			GameOver = true;
 			WCHAR GameOver_buf[180];
 			wsprintf(GameOver_buf, L"Game Over!");
-			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(0.f, window_size.bottom / 2 - 35.f));
-			pRenderTarget->DrawText(GameOver_buf, (int)wcslen(GameOver_buf), pGameOver, D2D1::RectF(0.f, 0.f, 450.f, 35.f), pGameOverBrush);
+			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(0.f, window_size.bottom / 2 - 40.f));
+			pRenderTarget->DrawText(GameOver_buf, (int)wcslen(GameOver_buf), pGameOver, D2D1::RectF(0.f, 0.f, window_size.right, 35.f), pGameOverBrush);
 		}
 	}
 	else
