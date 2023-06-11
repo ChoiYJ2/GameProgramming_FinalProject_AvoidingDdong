@@ -9,8 +9,10 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include <mutex>
 
-#define MAX_COUNT 1
+std::mutex scoreMutex;
+
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
 HRESULT LoadBitmapFromRes(ID2D1RenderTarget* pRenderTarget, IWICImagingFactory* pIWICFactory, PCWSTR resourceName, PCWSTR resourceType, UINT destinationWidth, UINT destinationHeight, ID2D1Bitmap** ppBitmap);
@@ -178,10 +180,6 @@ HRESULT MainWindow::CreateAppResource()
 	// 주의: WIC 팩토리를 생성하는 CoCreateInstance 함수가 사용될 때에는 이전에 CoInitialize를 호출해주어야 함.
 	hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pWICFactory));
 	if (FAILED(hr)) return hr;
-
-	scoreSemaphore = CreateSemaphore(NULL, MAX_COUNT, MAX_COUNT, NULL);
-	if (scoreSemaphore == NULL)
-		return 1;
 	
 	return hr;
 }
@@ -289,12 +287,13 @@ void MainWindow::checkHit()
 			if (i.Ddong_LeftTop.y <= window_size.bottom)
 			{
 				i.destroyed = true;
-				WaitForSingleObject()
+				scoreMutex.lock();
 				if (i.hitted and !score_calc)
 					score -= 10;
 				else
 					score += 10;
 				score_calc = true;
+				scoreMutex.unlock();
 			}
 		}
 	}
