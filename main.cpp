@@ -100,6 +100,7 @@ private:
 	int life_cnt = 0;
 	std::vector<Life> Lifes;
 	ID2D1Bitmap* pLifeBitmap;
+	ID2D1Bitmap* pBrokenLifeBitmap;
 };
 
 MainWindow::MainWindow() :
@@ -115,7 +116,8 @@ MainWindow::MainWindow() :
 	pPlayer(NULL),
 	pDdongPlayer(NULL),
 	pDdong_bitmap(NULL),
-	pLifeBitmap(NULL)
+	pLifeBitmap(NULL),
+	pBrokenLifeBitmap(NULL)
 {
 	PlaySound(L"bgm.wav", NULL, SND_NOSTOP | SND_ASYNC | SND_LOOP);
 }
@@ -227,6 +229,9 @@ HRESULT MainWindow::CreateDeviceResource()
 	hr = LoadBitmapFromRes(pRenderTarget, pWICFactory, L"Life", L"Image", 25, 25, &pLifeBitmap);
 	if (FAILED(hr)) return hr;
 
+	hr = LoadBitmapFromRes(pRenderTarget, pWICFactory, L"BrokenLife", L"Image", 25, 25, &pBrokenLifeBitmap);
+	if (FAILED(hr)) return hr;
+
 	::GetClientRect(hwnd, &window_size);
 	// 점수 초기화
 	score_LeftTop = D2D1::Point2F(window_size.right / 2 - 35.f, window_size.top);
@@ -259,6 +264,7 @@ void MainWindow::DiscardDeviceResource()
 	SAFE_RELEASE(pDdongPlayer);
 	SAFE_RELEASE(pDdong_bitmap);
 	SAFE_RELEASE(pLifeBitmap);
+	SAFE_RELEASE(pBrokenLifeBitmap);
 }
 
 // 키보드 왼쪽 화살표 버튼 누르면 player 왼쪽으로 이동
