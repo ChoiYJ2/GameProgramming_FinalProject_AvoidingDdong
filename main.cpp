@@ -274,7 +274,7 @@ void MainWindow::PlayermoveLeft()
 // 키보드 오른쪽 화살표 버튼 누르면 player 오른쪽으로 이동
 void MainWindow::PlayermoveRight()
 {
-	if (player_LeftTop.x >= (window_size.right - player_size.width - 5.f))
+	if (player_LeftTop.x >= (window_size.right - player_size.width - 8.f))
 		return;
 	player_LeftTop.x += 15.f;
 }
@@ -285,53 +285,17 @@ void MainWindow::checkHit()
 	for (auto& i : Ddongs)
 	{
 		float check_y = player_LeftTop.y - (i.Ddong_LeftTop.y + i.Ddong_size.height);
-		float check_x1 = (i.Ddong_LeftTop.x + i.Ddong_size.width) - player_LeftTop.x;
-		float check_x2 = i.Ddong_LeftTop.x - player_LeftTop.x;
+		float check_x1 = (player_LeftTop.x + player_size.width) - i.Ddong_LeftTop.x;
+		float hittedRange = player_size.width + i.Ddong_size.width;
 		if (check_y <= 0)
 		{
-			if (0 <= check_x1)
+			if (std::abs(check_x1) <= hittedRange)
 			{
-				if (std::abs(check_x1) <= player_size.width)
-				{
-					i.destroyed = true;
-					player_hitted = true;
-					if (!score_calc)
-						score -= 10;
-					score_calc = true;
-				}
-				else if (0 <= check_x2)
-				{
-					if (check_x2 < player_size.width)
-					{
-						i.destroyed = true;
-						player_hitted = true;
-						if (!score_calc)
-							score -= 10;
-						score_calc = true;
-					}
-				}
-			}
-			else if (check_x1 <= 0)
-			{
-				if (std::abs(check_x1) <= player_size.width)
-				{
-					i.destroyed = true;
-					player_hitted = true;
-					if (!score_calc)
-						score -= 10;
-					score_calc = true;
-				}
-				else if (0 <= check_x2)
-				{
-					if (check_x2 < player_size.width)
-					{
-						i.destroyed = true;
-						player_hitted = true;
-						if (!score_calc)
-							score -= 10;
-						score_calc = true;
-					}
-				}
+				i.destroyed = true;
+				player_hitted = true;
+				if (!score_calc)
+					score -= 10;
+				score_calc = true;
 			}
 			if (i.Ddong_LeftTop.y <= window_size.bottom)
 			{
@@ -353,12 +317,6 @@ void MainWindow::Ddongmove()
 		{
 			Ddongs.erase(Ddongs.begin() + i);
 		}
-		/*if ((Ddongs[i].Ddong_LeftTop.y + Ddongs[i].Ddong_size.height) >= window_size.bottom)
-		{
-			Ddongs[i].Ddong_LeftTop = D2D1::Point2F(rand() % 380, window_size.top + 35.f);
-			score_calc = false;
-			return;
-		}*/
 		Ddongs[i].Ddong_LeftTop.y += Ddongs[i].ddong_speed;
 	}
 }
@@ -437,7 +395,7 @@ void MainWindow::OnPaint()
 
 	//Score 그리기
 	WCHAR score_buf[180];
-	wsprintf(score_buf, L"Score: %d", window_size.bottom);
+	wsprintf(score_buf, L"Score: %d", score);
 	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 	pRenderTarget->DrawText(score_buf, (int)wcslen(score_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
 
