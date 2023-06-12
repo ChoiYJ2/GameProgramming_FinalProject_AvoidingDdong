@@ -20,7 +20,6 @@ typedef struct Ddong {
 	D2D1_SIZE_F Ddong_size;
 	D2D1_POINT_2F Ddong_LeftTop;
 	float ddong_speed = 0.f;
-	bool hitted = FALSE;
 	bool destroyed = FALSE;
 }Ddong;
 
@@ -294,7 +293,6 @@ void MainWindow::checkHit()
 			{
 				if (std::abs(check_x1) <= player_size.width)
 				{
-					i.hitted = true;
 					i.destroyed = true;
 					player_hitted = true;
 					if (!score_calc)
@@ -305,7 +303,6 @@ void MainWindow::checkHit()
 				{
 					if (check_x2 < player_size.width)
 					{
-						i.hitted = true;
 						i.destroyed = true;
 						player_hitted = true;
 						if (!score_calc)
@@ -318,7 +315,6 @@ void MainWindow::checkHit()
 			{
 				if (std::abs(check_x1) <= player_size.width)
 				{
-					i.hitted = true;
 					i.destroyed = true;
 					player_hitted = true;
 					if (!score_calc)
@@ -329,7 +325,6 @@ void MainWindow::checkHit()
 				{
 					if (check_x2 < player_size.width)
 					{
-						i.hitted = true;
 						i.destroyed = true;
 						player_hitted = true;
 						if (!score_calc)
