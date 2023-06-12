@@ -9,7 +9,6 @@
 #include <wincodec.h>
 #pragma comment(lib, "WindowsCodecs")
 #include <vector>
-#include <cstdlib>
 
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
@@ -75,8 +74,9 @@ private:
 
 	// GameOver
 	bool GameOver = false;
-	IDWriteTextFormat* pGameOver;
-	ID2D1SolidColorBrush* pGameOverBrush;
+	ID2D1Bitmap* pGameOverBitmap;
+	D2D1_SIZE_F gameover_size;
+	D2D1_POINT_2F gameover_LeftTop;
 
 	// 점수
 	int score = 0;
@@ -109,8 +109,7 @@ MainWindow::MainWindow() :
 	pD2DFactory(NULL),
 	pRenderTarget(NULL),
 	pDWriteFactory(NULL),
-	pGameOver(NULL),
-	pGameOverBrush(NULL),
+	pGameOverBitmap(NULL),
 	pScore(NULL),
 	pScoreBrush(NULL),
 	pWICFactory(NULL),
@@ -179,13 +178,6 @@ HRESULT MainWindow::CreateAppResource()
 	pScore->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 	pScore->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
-	// GameOver 표현
-	hr = pDWriteFactory->CreateTextFormat(L"Verdana", NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 50.f, L"", &pGameOver);
-	if (FAILED(hr)) return hr;
-
-	pGameOver->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	pGameOver->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-
 	// WIC 팩토리를 생성함.
 	// 주의: WIC 팩토리를 생성하는 CoCreateInstance 함수가 사용될 때에는 이전에 CoInitialize를 호출해주어야 함.
 	hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pWICFactory));
@@ -213,10 +205,6 @@ HRESULT MainWindow::CreateDeviceResource()
 	hr = pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black, 1.f), &pScoreBrush);
 	if (FAILED(hr)) return hr;
 
-	// 게임 오버 표현할 단색 붓 생성
-	hr = pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red, 3.f), &pGameOverBrush);
-	if (FAILED(hr)) return hr;
-
 	//Player 이미지 로드
 	hr = LoadBitmapFromRes(pRenderTarget, pWICFactory, L"Player", L"Image", 0, 0, &pPlayer);
 	if (FAILED(hr)) return hr;
@@ -231,6 +219,9 @@ HRESULT MainWindow::CreateDeviceResource()
 	if (FAILED(hr)) return hr;
 
 	hr = LoadBitmapFromRes(pRenderTarget, pWICFactory, L"BrokenLife", L"Image", 25, 25, &pBrokenLifeBitmap);
+	if (FAILED(hr)) return hr;
+
+	hr = LoadBitmapFromRes(pRenderTarget, pWICFactory, L"Gameover", L"Image", 350, 0, &pGameOverBitmap);
 	if (FAILED(hr)) return hr;
 
 	::GetClientRect(hwnd, &window_size);
@@ -252,6 +243,10 @@ HRESULT MainWindow::CreateDeviceResource()
 	}
 	life_cnt = Lifes.size();
 
+	// Gameover
+	gameover_size = pGameOverBitmap->GetSize();
+	gameover_LeftTop = D2D1::Point2F(0.f, (window_size.bottom - gameover_size.height) / 2);
+
 	return hr;
 }
 
@@ -260,8 +255,7 @@ void MainWindow::DiscardDeviceResource()
 	SAFE_RELEASE(pRenderTarget);
 	SAFE_RELEASE(pScore);
 	SAFE_RELEASE(pScoreBrush);
-	SAFE_RELEASE(pGameOver);
-	SAFE_RELEASE(pGameOverBrush);
+	SAFE_RELEASE(pGameOverBitmap);
 	SAFE_RELEASE(pPlayer);
 	SAFE_RELEASE(pDdongPlayer);
 	SAFE_RELEASE(pDdong_bitmap);
@@ -401,10 +395,8 @@ void MainWindow::OnPaint()
 			PlaySound(NULL, NULL, SND_ASYNC);
 			PlaySound(L"gameover.wav", NULL, SND_ASYNC);
 			GameOver = true;
-			WCHAR GameOver_buf[180];
-			wsprintf(GameOver_buf, L"Game Over!");
-			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(0.f, window_size.bottom / 2 - 40.f));
-			pRenderTarget->DrawText(GameOver_buf, (int)wcslen(GameOver_buf), pGameOver, D2D1::RectF(0.f, 0.f, window_size.right, 35.f), pGameOverBrush);
+			pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(gameover_LeftTop.x, gameover_LeftTop.y));
+			pRenderTarget->DrawBitmap(pGameOverBitmap, D2D1::RectF(0.f, 0.f, gameover_size.width, gameover_size.height));
 		}
 	}
 	else
