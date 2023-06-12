@@ -9,6 +9,7 @@
 #include <wincodec.h>
 #pragma comment(lib, "WindowsCodecs")
 #include <vector>
+#include <cmath>
 
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
@@ -291,7 +292,31 @@ void MainWindow::checkHit()
 		{
 			if (0 <= check_x1)
 			{
-				if (check_x1 <= player_size.width)
+				if (std::abs(check_x1) <= player_size.width)
+				{
+					i.hitted = true;
+					i.destroyed = true;
+					player_hitted = true;
+					if (!score_calc)
+						score -= 10;
+					score_calc = true;
+				}
+				else if (0 <= check_x2)
+				{
+					if (check_x2 < player_size.width)
+					{
+						i.hitted = true;
+						i.destroyed = true;
+						player_hitted = true;
+						if (!score_calc)
+							score -= 10;
+						score_calc = true;
+					}
+				}
+			}
+			else if (check_x1 <= 0)
+			{
+				if (std::abs(check_x1) <= player_size.width)
 				{
 					i.hitted = true;
 					i.destroyed = true;
