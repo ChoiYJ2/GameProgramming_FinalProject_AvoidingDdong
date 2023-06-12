@@ -172,7 +172,7 @@ HRESULT MainWindow::CreateAppResource()
 	if (FAILED(hr)) return hr;
 
 	// 점수 표현
-	hr = pDWriteFactory->CreateTextFormat(L"Verdana", NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 16.f, L"", &pScore);
+	hr = pDWriteFactory->CreateTextFormat(L"Verdana", NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 18.f, L"", &pScore);
 	if (FAILED(hr)) return hr;
 
 	pScore->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -333,12 +333,12 @@ void MainWindow::Ddongmove()
 		{
 			Ddongs.erase(Ddongs.begin() + i);
 		}
-		if ((Ddongs[i].Ddong_LeftTop.y + Ddongs[i].Ddong_size.height) >= window_size.bottom)
+		/*if ((Ddongs[i].Ddong_LeftTop.y + Ddongs[i].Ddong_size.height) >= window_size.bottom)
 		{
 			Ddongs[i].Ddong_LeftTop = D2D1::Point2F(rand() % 380, window_size.top + 35.f);
 			score_calc = false;
 			return;
-		}
+		}*/
 		Ddongs[i].Ddong_LeftTop.y += Ddongs[i].ddong_speed;
 	}
 }
@@ -348,7 +348,7 @@ void MainWindow::DdongGEN()
 {
 	ddong.pDdong = pDdong_bitmap;
 	ddong.ddong_speed = rand() % 5 + 2.f;
-	ddong.Ddong_LeftTop = D2D1::Point2F(rand() % 350, window_size.top + 35.f);
+	ddong.Ddong_LeftTop = D2D1::Point2F(rand() % 345, window_size.top + 35.f);
 	ddong.Ddong_size = ddong.pDdong->GetSize();
 	Ddongs.push_back(ddong);
 }
@@ -409,12 +409,15 @@ void MainWindow::OnPaint()
 	for (auto& i : Ddongs)
 	{
 		pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(i.Ddong_LeftTop.x, i.Ddong_LeftTop.y));
-		pRenderTarget->DrawBitmap(i.pDdong, D2D1::RectF(0.f, 0.f, i.Ddong_size.width, i.Ddong_size.height));
+		if(i.destroyed)
+			pRenderTarget->DrawBitmap(i.pDdong, D2D1::RectF(0.f, 0.f, i.Ddong_size.width, i.Ddong_size.height), 0.f);
+		else
+			pRenderTarget->DrawBitmap(i.pDdong, D2D1::RectF(0.f, 0.f, i.Ddong_size.width, i.Ddong_size.height));
 	}
 
 	//Score 그리기
 	WCHAR score_buf[180];
-	wsprintf(score_buf, L"Score: %d", score);
+	wsprintf(score_buf, L"Score: %d", window_size.bottom);
 	pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 	pRenderTarget->DrawText(score_buf, (int)wcslen(score_buf), pScore, D2D1::RectF(score_LeftTop.x - 70.f, score_LeftTop.y, score_LeftTop.x + 150.f, 35.f), pScoreBrush);
 
